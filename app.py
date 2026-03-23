@@ -1,37 +1,30 @@
-# ... (tus imports de arriba se quedan igual) ...
+"""
+Plataforma de Bienestar Psicologico - Unidad de Igualdad de Genero
+Universidad Politecnica de Chiapas
+"""
 
-# 1. Crear la aplicación Flask
+import os
+import re
+import json
+import secrets
+import openpyxl
+from datetime import datetime, timedelta
+from functools import wraps
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+
+from flask import Flask, render_template, redirect, url_for, request, send_from_directory, flash, session, jsonify, send_file, abort
+
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import (
+    LoginManager, UserMixin, login_user, logout_user,
+    login_required, current_user
+) # <-- Aquí faltaba cerrar el paréntesis
+
+from werkzeug.security import generate_password_hash, check_password_hash
+# 1. PRIMERO: Crear la aplicación Flask
 app = Flask(__name__)
 
-# 2. Configurar la base de datos (IMPORTANTE: Esto debe ir antes de db = SQLAlchemy)
-app.config['SECRET_KEY'] = secrets.token_hex(32)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bienestar.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 3. Inicializar la extensión de la base de datos
-db = SQLAlchemy(app)
-
-# 4. Configurar el LoginManager
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-# 5. DEFINIR TUS MODELOS (Las "tablas" de las que hablábamos)
-# Aquí pegas tus clases: class Usuario, class ResultadoRyff, etc.
-class Usuario(UserMixin, db.Model):
-    __tablename__ = 'usuarios'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    # ... (el resto de los campos de tu usuario) ...
-
-# ... (todas tus otras clases de tablas) ...
-
-# 6. CREAR LAS TABLAS FÍSICAMENTE
-# Este bloque SIEMPRE debe ir después de que definiste todas las clases (tablas)
-with app.app_context():
-    db.create_all()
-    print("Tablas de Bienestar UPChiapas creadas exitosamente.")
-
-# 7. CONTINUAR CON TUS RUTAS (@app.route)
 # 2. SEGUNDO: Configurar la aplicación
 app.config['SECRET_KEY'] = secrets.token_hex(32)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bienestar.db'
