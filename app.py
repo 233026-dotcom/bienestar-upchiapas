@@ -27,6 +27,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # 1. PRIMERO: Crear la aplicación Flask
 app = Flask(__name__)
 
+with app.app_context():
+    db.create_all()
+    print("Tablas creadas exitosamente")
+
 # 2. SEGUNDO: Configurar la aplicación
 app.config['SECRET_KEY'] = secrets.token_hex(32)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bienestar.db'
