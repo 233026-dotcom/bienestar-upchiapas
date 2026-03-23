@@ -1,13 +1,38 @@
-import os
-import secrets
-from datetime import datetime, timedelta
-from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+# ... (tus imports de arriba se quedan igual) ...
 
-# 1. CONFIGURACIÓN INICIAL
+# 1. Crear la aplicación Flask
 app = Flask(__name__)
+
+# 2. Configurar la base de datos (IMPORTANTE: Esto debe ir antes de db = SQLAlchemy)
+app.config['SECRET_KEY'] = secrets.token_hex(32)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bienestar.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 3. Inicializar la extensión de la base de datos
+db = SQLAlchemy(app)
+
+# 4. Configurar el LoginManager
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# 5. DEFINIR TUS MODELOS (Las "tablas" de las que hablábamos)
+# Aquí pegas tus clases: class Usuario, class ResultadoRyff, etc.
+class Usuario(UserMixin, db.Model):
+    __tablename__ = 'usuarios'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    # ... (el resto de los campos de tu usuario) ...
+
+# ... (todas tus otras clases de tablas) ...
+
+# 6. CREAR LAS TABLAS FÍSICAMENTE
+# Este bloque SIEMPRE debe ir después de que definiste todas las clases (tablas)
+with app.app_context():
+    db.create_all()
+    print("Tablas de Bienestar UPChiapas creadas exitosamente.")
+
+# 7. CONTINUAR CON TUS RUTAS (@app.route)
+# 2. SEGUNDO: Configurar la aplicación
 app.config['SECRET_KEY'] = secrets.token_hex(32)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bienestar.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -16,8 +41,11 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+login_manager.login_message = 'Por favor inicia sesión para acceder.'
+login_manager.login_message_category = 'info'
 
-# 2. DEFINICIÓN DE MODELOS (Tablas)
+# --- MODELOS ---
+
 class Usuario(UserMixin, db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
@@ -34,6 +62,12 @@ class Usuario(UserMixin, db.Model):
     acepta_privacidad = db.Column(db.Boolean, default=False)
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
     notificado_riesgo = db.Column(db.Boolean, default=False)
+    
+    # Relaciones
+    resultados_ryff = db.relationship('ResultadoRyff', backref='usuario', lazy=True)
+    entradas_diario = db.relationship('EntradaDiario', backref='usuario', lazy=True)
+    logros = db.relationship('Logro', backref='usuario', lazy=True)
+    notificaciones = db.relationship('Notificacion', backref='usuario', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -41,48 +75,78 @@ class Usuario(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 class ResultadoRyff(db.Model):
     __tablename__ = 'resultados_ryff'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    autoaceptacion = db.Column(db.Integer, default=0)
+    relaciones_positivas = db.Column(db.Integer, default=0)
+    autonomia = db.Column(db.Integer, default=0)
+    dominio_entorno = db.Column(db.Integer, default=0)
+    crecimiento_personal = db.Column(db.Integer, default=0)
+    proposito_vida = db.Column(db.Integer, default=0)
     puntaje_total = db.Column(db.Integer, default=0)
     nivel_riesgo = db.Column(db.String(20))
+    respuestas_json = db.Column(db.Text)
+
 
 class Notificacion(db.Model):
     __tablename__ = 'notificaciones'
     id = db.Column(db.Integer, primary_key=True)
+    # Corregido: Referencia a 'usuarios.id' para coincidir con el __tablename__ de Usuario
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     mensaje = db.Column(db.String(500), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    leida = db.Column(db.Boolean, default=False)
+
 
 class EntradaDiario(db.Model):
     __tablename__ = 'entradas_diario'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
     contenido = db.Column(db.Text, nullable=False)
+    estado_animo = db.Column(db.Integer, default=3)
+
 
 class Logro(db.Model):
     __tablename__ = 'logros'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     titulo = db.Column(db.String(200), nullable=False)
+    tipo = db.Column(db.String(50))
+    completado = db.Column(db.Boolean, default=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class FraseConsejo(db.Model):
     __tablename__ = 'frases_consejos'
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.Text, nullable=False)
+    tipo = db.Column(db.String(20))
+    activo = db.Column(db.Boolean, default=True)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 3. CREACIÓN DE TABLAS (ESTE ES EL BLOQUE CLAVE)
-# Debe ir DESPUÉS de definir las clases y ANTES de las rutas
-with app.app_context():
-    db.create_all()
-    print("Tablas de Bienestar UPChiapas creadas exitosamente.")
+# LOADER & DECORATORS
 
-# 4. CARGADOR DE USUARIO Y RUTAS
+
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
-# Aquí continuarían tus @app.route...
+
+def admin_required(f):
+    @wraps(f)
+    @login_required
+    def decorated(*args, **kwargs):
+        if current_user.rol != 'admin':
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+
+
 # PREGUNTAS TEST DE RYFF (39 items, 6 categorias)
 
 
