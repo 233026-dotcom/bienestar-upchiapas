@@ -22,6 +22,13 @@ from flask_login import (
 
 from werkzeug.security import generate_password_hash, check_password_hash
 # 1. PRIMERO: Crear la aplicación Flask
+
+import os
+
+# Esta línea busca la variable que pusiste en Railway. 
+# Si no la encuentra (como en tu PC), usa SQLite por defecto.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///bienestar.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app = Flask(__name__)
 
 
