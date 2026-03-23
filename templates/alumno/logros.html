@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Logros{% endblock %}
+{% block extra_css %}<style>
+.logros{max-width:750px;margin:0 auto}
+.logro-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px;transition:var(--transition)}
+.logro-item:hover{box-shadow:var(--shadow)} .logro-item.completado{opacity:0.7} .logro-item.completado .logro-titulo{text-decoration:line-through}
+.logro-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);flex-shrink:0;background:transparent;color:var(--text-primary);font-family:var(--font-body)}
+.logro-item.completado .logro-check{background:var(--accent);border-color:var(--accent);color:#fff}
+.logro-titulo{flex:1;font-size:0.95rem} .logro-tipo{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);padding:2px 8px;border-radius:50px;background:var(--bg-input)}
+.logro-delete{color:var(--text-muted);cursor:pointer;font-size:0.85rem;background:none;border:none} .logro-delete:hover{color:var(--danger)}
+.add-logro{display:flex;gap:10px;margin-bottom:1.5rem} .add-logro input{flex:1}
+</style>{% endblock %}
+{% block content %}
+<div class="logros">
+    <div class="page-header"><h1><i class="fas fa-trophy" style="color:var(--accent)"></i> Mis Logros</h1><p>Registra tus hábitos saludables</p></div>
+    {% set completados = logros|selectattr('completado')|list|length %}{% set total = logros|length %}
+    <div class="card" style="margin-bottom:1.5rem">
+        <div style="display:flex;gap:1.5rem;margin-bottom:1rem">
+            <div style="text-align:center"><div class="card-value" style="font-size:1.8rem">{{ completados }}</div><div style="font-size:0.82rem;color:var(--text-muted)">Completados</div></div>
+            <div style="text-align:center"><div class="card-value" style="font-size:1.8rem">{{ total - completados }}</div><div style="font-size:0.82rem;color:var(--text-muted)">Pendientes</div></div>
+        </div>
+        {% if total > 0 %}<div class="progress-bar"><div class="progress-fill green" style="width:{{ (completados / total * 100)|round(1) }}%"></div></div><p style="font-size:0.82rem;color:var(--text-muted);margin-top:6px;text-align:center">{{ (completados / total * 100)|round(1) }}%</p>{% endif %}
+    </div>
+    <form method="POST" action="{{ url_for('logros') }}"><input type="hidden" name="action" value="agregar"><div class="add-logro"><input type="text" name="titulo" class="form-control" placeholder="Agregar logro personal..." required><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar</button></div></form>
+    {% for logro in logros %}<div class="logro-item {% if logro.completado %}completado{% endif %}">
+        <form method="POST" action="{{ url_for('logros') }}" style="display:contents"><input type="hidden" name="action" value="toggle"><input type="hidden" name="logro_id" value="{{ logro.id }}"><button type="submit" class="logro-check">{% if logro.completado %}<i class="fas fa-check" style="font-size:0.75rem"></i>{% endif %}</button></form>
+        <span class="logro-titulo">{{ logro.titulo }}</span><span class="logro-tipo">{{ logro.tipo }}</span>
+        {% if logro.tipo == 'personal' %}<form method="POST" action="{{ url_for('logros') }}" style="display:contents"><input type="hidden" name="action" value="eliminar"><input type="hidden" name="logro_id" value="{{ logro.id }}"><button type="submit" class="logro-delete"><i class="fas fa-trash-alt"></i></button></form>{% endif %}
+    </div>{% endfor %}
+    <a href="{{ url_for('alumno_dashboard') }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver</a>
+</div>
+{% endblock %}

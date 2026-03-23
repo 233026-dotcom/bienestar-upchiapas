@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Frases y Consejos{% endblock %}
+{% block extra_css %}<style>
+.frases-container{max-width:750px;margin:0 auto}
+.frase-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.8rem;margin-bottom:1rem;position:relative;overflow:hidden;transition:var(--transition)}
+.frase-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.frase-card.tipo-frase{border-left:4px solid var(--accent)} .frase-card.tipo-consejo{border-left:4px solid #2563EB}
+.tipo-badge{font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:0.5rem;display:inline-block;padding:3px 10px;border-radius:50px}
+.tipo-frase .tipo-badge{background:var(--success-light);color:var(--success)} .tipo-consejo .tipo-badge{background:#E0F0FF;color:#2563EB} [data-theme="dark"] .tipo-consejo .tipo-badge{background:#1A2A3A;color:#60A5FA}
+.frase-text{font-size:1.05rem;line-height:1.7;font-style:italic}
+.quote-icon{position:absolute;top:12px;right:16px;font-size:2rem;opacity:0.08}
+</style>{% endblock %}
+{% block content %}
+<div class="frases-container">
+    <div class="page-header"><h1><i class="fas fa-quote-left" style="color:var(--accent)"></i> Frases y Consejos</h1><p>Inspiración para tu bienestar diario</p></div>
+    {% if frases %}{% for f in frases %}<div class="frase-card tipo-{{ f.tipo }}"><i class="fas fa-quote-right quote-icon"></i><span class="tipo-badge">{% if f.tipo == 'frase' %}<i class="fas fa-star"></i> Frase{% else %}<i class="fas fa-lightbulb"></i> Consejo{% endif %}</span><p class="frase-text">{{ f.texto }}</p></div>{% endfor %}{% else %}<div class="card text-center" style="padding:3rem"><i class="fas fa-seedling" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem"></i><h3>Próximamente</h3></div>{% endif %}
+    <a href="{{ url_for('alumno_dashboard') }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver al menu</a>
+</div>
+{% endblock %}

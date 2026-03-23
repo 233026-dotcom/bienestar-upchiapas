@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Panel Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-header{background:var(--gradient-hero);color:#bcf3d9;border-radius:var(--radius);padding:2rem;margin-bottom:2rem;position:relative;overflow:hidden}
+.admin-header::after{content:'';position:absolute;width:300px;height:300px;background:rgba(255,255,255,0.06);border-radius:50%;top:-80px;right:-60px}
+.admin-header h1{font-family:var(--font-display);position:relative;z-index:1} .admin-header p{opacity:0.85;position:relative;z-index:1}
+.modal-overlay{position:fixed;inset:0;background:var(--overlay);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)} .modal-overlay.active{display:flex}
+.modal{background:var(--bg-card);border-radius:var(--radius);padding:2rem;max-width:500px;width:90%;box-shadow:var(--shadow-lg)} .modal h3{font-family:var(--font-display);margin-bottom:1rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1><i class="fas fa-shield-halved"></i> Panel de Administración</h1>
+    <p>Unidad de Igualdad de Género - UPChiapas</p>
+</div>
+
+<div class="grid-3 stagger" style="margin-bottom:2rem">
+    <div class="card"><div class="card-header"><div class="card-icon green"><i class="fas fa-users"></i></div><div><div class="card-title">Alumnos Registrados</div><div class="card-value">{{ total_alumnos }}</div></div></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon blue"><i class="fas fa-clipboard-check"></i></div><div><div class="card-title">Tests Realizados</div><div class="card-value">{{ total_tests }}</div></div></div></div>
+    <div class="card"><div class="card-header"><div class="card-icon red"><i class="fas fa-exclamation-triangle"></i></div><div><div class="card-title">Riesgo Alto</div><div class="card-value">{{ alumnos_riesgo_alto }}</div></div></div></div>
+</div>
+
+<h2 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:1.2rem">Gestión</h2>
+<div class="grid-3 stagger" style="margin-bottom:2rem">
+    <a href="{{ url_for('admin_resultados') }}" class="menu-card"><div class="menu-card-icon" style="background:linear-gradient(135deg,#FFE0E0,#FFBDBD);color:#C1292E"><i class="fas fa-ranking-star"></i></div><h3>Resultados por Riesgo</h3><p>Ver resultados de mayor a menor riesgo</p></a>
+    <a href="{{ url_for('admin_frases') }}" class="menu-card"><div class="menu-card-icon" style="background:linear-gradient(135deg,#FFF3CD,#FFEAA7);color:#D4A017"><i class="fas fa-pen-fancy"></i></div><h3>Frases y Consejos</h3><p>Agregar o quitar frases para alumnos</p></a>
+    <a href="{{ url_for('exportar_excel') }}" class="menu-card"><div class="menu-card-icon" style="background:linear-gradient(135deg,#D8F3DC,#B7E4C7);color:#2D6A4F"><i class="fas fa-file-excel"></i></div><h3>Exportar Excel</h3><p>Descargar resultados en Excel</p></a>
+</div>
+
+<h2 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:1.2rem">Herramientas</h2>
+<div class="grid-2" style="margin-bottom:2rem">
+    <div class="card"><h3 style="margin-bottom:1rem;font-size:1rem"><i class="fas fa-key" style="color:var(--accent)"></i> Cambiar Contraseña</h3>
+        <form method="POST" action="{{ url_for('admin_cambiar_password') }}">
+            <div class="form-group"><label>Contraseña actual</label><input type="password" name="current_password" class="form-control" required></div>
+            <div class="form-group"><label>Nueva contraseña</label><input type="password" name="new_password" class="form-control" required minlength="6"></div>
+            <div class="form-group"><label>Confirmar nueva</label><input type="password" name="confirm_password" class="form-control" required></div>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Actualizar</button>
+        </form>
+    </div>
+    <div class="card"><h3 style="margin-bottom:1rem;font-size:1rem"><i class="fas fa-database" style="color:var(--danger)"></i> Gestión de Base de Datos</h3>
+        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:1rem">Elimina resultados de tests, entradas de diario y logros. <strong style="color:var(--danger)">No se puede deshacer.</strong></p>
+        <button class="btn btn-danger btn-sm" onclick="document.getElementById('ml').classList.add('active')"><i class="fas fa-trash-alt"></i> Limpiar datos</button>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem">
+    <h3 style="margin-bottom:1rem;font-family:var(--font-display);font-size:1.1rem">
+        <i class="fas fa-chart-bar" style="color:var(--accent)"></i> Distribución de Riesgo
+    </h3>
+    <canvas id="risk-chart" style="max-height:250px"></canvas>
+</div>
+
+<div class="modal-overlay" id="ml">
+    <div class="modal">
+        <h3><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> Confirmar Eliminación</h3>
+        <p style="margin-bottom:1rem;color:var(--text-secondary)">Escribe <strong>CONFIRMAR</strong> para eliminar todos los datos de pruebas.</p>
+        <form method="POST" action="{{ url_for('limpiar_db') }}">
+            <div class="form-group"><input type="text" name="confirmar" class="form-control" placeholder="Escribe CONFIRMAR" required></div>
+            <div style="display:flex;gap:10px">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('ml').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+fetch('{{ url_for("estadisticas_json") }}')
+    .then(r => r.json())
+    .then(data => {
+        const dk = document.documentElement.getAttribute('data-theme') === 'dark';
+        new Chart(document.getElementById('risk-chart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Alto Riesgo', 'Riesgo Medio', 'Bajo Riesgo'],
+                datasets: [{
+                    // Asegúrate de que tu Python envíe data.riesgo.alto como el valor de riesgo (bienestar bajo)
+                    data: [data.riesgo.alto || 0, data.riesgo.medio || 0, data.riesgo.bajo || 0],
+                    backgroundColor: ['#C1292E', '#D4A017', '#2D6A4F'], // Rojo, Amarillo, Verde
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: dk ? '#A0A0B8' : '#5A5A7A',
+                            padding: 20,
+                            font: { size: 13 }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

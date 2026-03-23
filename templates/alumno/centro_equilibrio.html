@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Centro de Equilibrio{% endblock %}
+{% block extra_css %}<style>
+.equil{max-width:700px;margin:0 auto}
+.breath-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;margin-bottom:1.5rem}
+.breath-circle-container{width:220px;height:220px;margin:2rem auto;position:relative}
+.breath-circle{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,rgba(45,106,79,0.15) 0%,rgba(82,183,136,0.05) 100%);border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:transform 4s ease-in-out}
+.breath-circle.inhale{transform:scale(1.25)} .breath-circle.hold{transform:scale(1.25)} .breath-circle.exhale{transform:scale(0.85)} .breath-circle.empty{transform:scale(0.85)}
+.breath-label{font-family:var(--font-display);font-size:1.4rem;color:var(--accent);font-weight:700}
+.breath-timer{font-size:2.5rem;font-weight:700;font-family:var(--font-display);color:var(--text-primary)}
+.breath-phase{font-size:0.9rem;color:var(--text-muted);margin-top:4px}
+.instructions{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem}
+.instruction-step{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)} .instruction-step:last-child{border-bottom:none}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0}
+.siaup-card{background:linear-gradient(135deg,#E0F0FF,#BFDBFE);border:1px solid #93C5FD;border-radius:var(--radius);padding:1.5rem;text-align:center;margin-top:1.5rem}
+[data-theme="dark"] .siaup-card{background:linear-gradient(135deg,#1A2A3A,#1E3A5F);border-color:#3B82F6}
+.siaup-card h3{color:#2563EB;margin-bottom:0.5rem} [data-theme="dark"] .siaup-card h3{color:#60A5FA}
+.siaup-card p{font-size:0.9rem;color:var(--text-secondary);margin-bottom:1rem}
+</style>{% endblock %}
+{% block content %}
+<div class="equil">
+    <div class="page-header"><h1><i class="fas fa-wind" style="color:var(--accent)"></i> Centro de Equilibrio</h1><p>Técnica de respiración 4-4-4-4 para la calma</p></div>
+    <div class="instructions">
+        <h3 style="margin-bottom:0.8rem;font-family:var(--font-display)"><i class="fas fa-lungs" style="color:var(--accent)"></i> Respiración Cuadrada</h3>
+        <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:1rem">Reduce el estrés y la ansiedad. Sigue estos 4 pasos:</p>
+        <div class="instruction-step"><div class="step-num">1</div><div><strong>Inhala</strong><br><span style="font-size:0.88rem;color:var(--text-secondary)">Toma aire por la nariz durante 4 tiempos</span></div></div>
+        <div class="instruction-step"><div class="step-num">2</div><div><strong>Mantén el aire</strong><br><span style="font-size:0.88rem;color:var(--text-secondary)">Reten el aire 4 tiempos</span></div></div>
+        <div class="instruction-step"><div class="step-num">3</div><div><strong>Exhala</strong><br><span style="font-size:0.88rem;color:var(--text-secondary)">Suelta el aire lentamente por la boca 4 tiempos</span></div></div>
+        <div class="instruction-step"><div class="step-num">4</div><div><strong>Mantén los pulmones vacios</strong><br><span style="font-size:0.88rem;color:var(--text-secondary)">Espera 4 tiempos antes de volver a empezar</span></div></div>
+    </div>
+    <div class="breath-card">
+        <div class="breath-circle-container"><div class="breath-circle" id="bc"><div class="breath-timer" id="bt">4</div><div class="breath-label" id="bl">Listo</div><div class="breath-phase" id="bp">Presiona iniciar</div></div></div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:1.5rem"><button class="btn btn-primary btn-lg" id="start-btn" onclick="toggleB()"><i class="fas fa-play"></i> Iniciar</button><button class="btn btn-secondary" onclick="resetB()"><i class="fas fa-redo"></i> Reiniciar</button></div>
+        <div id="cc" style="font-size:0.9rem;color:var(--text-muted);margin-top:1rem">Ciclos: 0</div>
+    </div>
+    <div class="siaup-card"><h3><i class="fas fa-headset"></i> Necesitas más apoyo?</h3><p>SIAUP ofrece atención psicológica profesional gratuita.</p><a href="https://siaup.upchiapas.edu.mx" target="_blank" class="btn btn-primary"><i class="fas fa-external-link-alt"></i> Ir al SIAUP</a></div>
+    <a href="{{ url_for('alumno_dashboard') }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver al menu</a>
+</div>
+{% endblock %}
+{% block extra_js %}<script>
+var running=false,intv=null,phase=0,cnt=4,cycles=0;
+var phases=[{n:'Inhala',c:'inhale'},{n:'Manten',c:'hold'},{n:'Exhala',c:'exhale'},{n:'Vacio',c:'empty'}];
+function toggleB(){running?pauseB():startB()}
+function startB(){running=true;document.getElementById('start-btn').innerHTML='<i class="fas fa-pause"></i> Pausar';runP()}
+function pauseB(){running=false;clearInterval(intv);document.getElementById('start-btn').innerHTML='<i class="fas fa-play"></i> Continuar'}
+function resetB(){running=false;clearInterval(intv);phase=0;cnt=4;cycles=0;document.getElementById('bc').className='breath-circle';document.getElementById('bt').textContent='4';document.getElementById('bl').textContent='Listo';document.getElementById('bp').textContent='Presiona iniciar';document.getElementById('cc').textContent='Ciclos: 0';document.getElementById('start-btn').innerHTML='<i class="fas fa-play"></i> Iniciar'}
+function runP(){if(!running)return;var p=phases[phase];document.getElementById('bc').className='breath-circle '+p.c;document.getElementById('bl').textContent=p.n;cnt=4;document.getElementById('bt').textContent=cnt;intv=setInterval(function(){cnt--;if(cnt<=0){clearInterval(intv);phase=(phase+1)%4;if(phase===0){cycles++;document.getElementById('cc').textContent='Ciclos: '+cycles}runP()}else{document.getElementById('bt').textContent=cnt}},1000)}
+</script>{% endblock %}

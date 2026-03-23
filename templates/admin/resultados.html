@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Resultados - Admin{% endblock %}
+{% block extra_css %}
+<style>
+.filter-bar{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:8px 16px;border-radius:50px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);font-size:0.85rem;transition:all 0.3s}
+.filter-btn.active,.filter-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.student-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:0.8rem;transition:var(--transition)} .student-card:hover{box-shadow:var(--shadow)}
+
+/* Lógica de colores: Bajo puntaje = Riesgo (Rojo) */
+.student-card.riesgo-bajo{border-left:4px solid var(--danger)} 
+.student-card.riesgo-medio{border-left:4px solid var(--warning)}
+.student-card.riesgo-alto{border-left:4px solid var(--success)}
+
+.student-main{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.student-info h4{font-size:1rem;margin-bottom:2px} .student-meta{font-size:0.82rem;color:var(--text-muted);display:flex;gap:12px;flex-wrap:wrap} .student-meta span{display:flex;align-items:center;gap:4px}
+.student-score{text-align:center} .student-score .sv{font-family:var(--font-display);font-size:1.5rem;color:var(--accent);font-weight:700} .student-score .sl{font-size:0.75rem;color:var(--text-muted)}
+.detail-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid var(--border)} .detail-item{font-size:0.82rem} .detail-item strong{display:block;color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px}
+.notif-badge{font-size:0.75rem;padding:3px 8px;border-radius:50px} .notif-badge.sent{background:var(--success-light);color:var(--success)}
+
+.badge-admin-alto { background-color: #d4edda; color: #155724; }
+.badge-admin-medio { background-color: #fff3cd; color: #856404; }
+.badge-admin-bajo { background-color: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+    <div>
+        <h1><i class="fas fa-ranking-star" style="color:var(--accent)"></i> Resultados por Riesgo</h1>
+        <p>{{ resultados|length }} alumnos evaluados</p>
+    </div>
+    <div style="display:flex;gap:10px">
+        <form method="POST" action="{{ url_for('enviar_alertas_masivas') }}">
+            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Enviar alertas a todos los alumnos con puntaje bajo?')">
+                <i class="fas fa-bell"></i> Alertar Riesgo
+            </button>
+        </form>
+        <a href="{{ url_for('exportar_excel') }}" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Excel</a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <button class="filter-btn active" onclick="fR('all',this)">Todos</button>
+    <button class="filter-btn" onclick="fR('bajo',this)">Riesgo Alto</button>
+    <button class="filter-btn" onclick="fR('medio',this)">Riesgo Medio</button>
+    <button class="filter-btn" onclick="fR('alto',this)">Bienestar Alto</button>
+</div>
+
+{% if resultados %}
+    {% for r, u in resultados %}
+    <div class="student-card riesgo-{{ r.nivel_riesgo }}" data-risk="{{ r.nivel_riesgo }}">
+        <div class="student-main">
+            <div class="student-info">
+                <h4>{{ u.nombre_completo or 'Sin nombre' }}</h4>
+                <div class="student-meta">
+                    <span><i class="fas fa-envelope"></i> {{ u.email }}</span>
+                    <span><i class="fas fa-graduation-cap"></i> {{ u.carrera or 'N/A' }}</span>
+                    <span><i class="fas fa-calendar"></i> {{ r.fecha.strftime('%d/%m/%Y') if r.fecha else 'N/A' }}</span>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px">
+                <div class="student-score">
+                    <div class="sv">{{ r.puntaje_total }}</div>
+                    <div class="sl">/ 252</div>
+                </div>
+                
+                <span class="badge badge-admin-{{ r.nivel_riesgo }}" style="padding: 5px 12px; border-radius: 50px; font-weight: bold;">
+                    {% if r.nivel_riesgo == 'alto' %} BIENESTAR ALTO
+                    {% elif r.nivel_riesgo == 'medio' %} BIENESTAR MEDIO
+                    {% else %} ALTO RIESGO {% endif %}
+                </span>
+
+                {% if u.notificado_riesgo %}
+                    <span class="notif-badge sent"><i class="fas fa-check"></i> Notificado</span>
+                {% elif r.nivel_riesgo == 'bajo' %}
+                    <form method="POST" action="{{ url_for('enviar_alerta', usuario_id=u.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-item"><strong>Edad</strong>{{ u.edad or 'N/A' }}</div>
+            <div class="detail-item"><strong>Origen</strong>{{ u.origen or 'N/A' }}</div>
+            <div class="detail-item"><strong>Total</strong>{{ r.puntaje_total }}/252</div>
+            <div class="detail-item"><strong>Autoaceptación</strong>{{ r.autoaceptacion }}/42</div>
+            <div class="detail-item"><strong>Relaciones</strong>{{ r.relaciones_positivas }}/42</div>
+            <div class="detail-item"><strong>Autonomía</strong>{{ r.autonomia }}/42</div>
+            <div class="detail-item"><strong>Dominio</strong>{{ r.dominio_entorno }}/42</div>
+            <div class="detail-item"><strong>Crecimiento</strong>{{ r.crecimiento_personal }}/42</div>
+            <div class="detail-item"><strong>Propósito</strong>{{ r.proposito_vida }}/42</div>
+        </div>
+    </div>
+    {% endfor %} {% else %}
+    <div class="card text-center" style="padding:3rem">
+        <i class="fas fa-clipboard-list" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem"></i>
+        <h3>Sin resultados aún</h3>
+    </div>
+{% endif %} <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver</a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fR(l,b){
+    document.querySelectorAll('.filter-btn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');
+    document.querySelectorAll('.student-card').forEach(function(c){
+        c.style.display=(l==='all'||c.dataset.risk===l)?'block':'none'
+    });
+}
+</script>
+{% endblock %}

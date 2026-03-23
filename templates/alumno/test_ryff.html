@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Test de Ryff{% endblock %}
+{% block extra_css %}<style>
+.test-container{max-width:750px;margin:0 auto}
+.category-page{display:none} .category-page.active{display:block;animation:fadeIn 0.4s ease}
+.category-header{background:var(--gradient-hero);color:#fff;border-radius:var(--radius);padding:1.8rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.category-header::after{content:'';position:absolute;width:200px;height:200px;background:rgba(255,255,255,0.08);border-radius:50%;top:-60px;right:-40px}
+.category-header h2{font-family:var(--font-display);font-size:1.5rem;margin-bottom:0.3rem;position:relative;z-index:1} .category-header p{opacity:0.9;font-size:0.92rem;position:relative;z-index:1} .category-counter{opacity:0.7;font-size:0.82rem;margin-top:0.3rem;position:relative;z-index:1}
+.question-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;transition:var(--transition)}
+.question-card:hover{box-shadow:var(--shadow)} .question-card.unanswered{border-color:var(--danger)}
+.question-text{font-weight:500;margin-bottom:1rem;font-size:0.95rem;line-height:1.5}
+.likert-scale{display:flex;gap:6px;flex-wrap:wrap} .likert-option{flex:1;min-width:60px;text-align:center} .likert-option input{display:none}
+.likert-option label{display:block;padding:10px 6px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:0.78rem;font-weight:500;transition:var(--transition);color:var(--text-secondary);line-height:1.3}
+.likert-option input:checked+label{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.02)} .likert-option label:hover{border-color:var(--accent);color:var(--accent)}
+.nav-buttons{display:flex;gap:12px;margin-top:2rem}
+.progress-container{margin-bottom:1.5rem} .progress-text{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-muted);margin-bottom:6px}
+.overall-progress{height:6px;background:var(--bg-input);border-radius:50px;overflow:hidden} .overall-progress-fill{height:100%;background:var(--gradient-hero);border-radius:50px;transition:width 0.5s ease}
+.test-info{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem} .test-info p{font-size:0.9rem;color:var(--text-secondary);line-height:1.6}
+@media(max-width:500px){.likert-scale{gap:4px} .likert-option{min-width:48px} .likert-option label{padding:8px 4px;font-size:0.7rem}}
+</style>{% endblock %}
+{% block content %}
+<div class="test-container">
+    <div class="page-header"><h1><i class="fas fa-brain" style="color:var(--accent)"></i> Test de Bienestar de Ryff</h1><p>Evalúa tu bienestar en 6 dimensiones</p></div>
+    <div class="progress-container"><div class="progress-text"><span>Progreso general</span><span id="pp">0%</span></div><div class="overall-progress"><div class="overall-progress-fill" id="pb" style="width:0%"></div></div></div>
+    <form method="POST" action="{{ url_for('enviar_test_ryff') }}" id="ryff-form">
+        {% set cat_keys = ['autoaceptacion','relaciones_positivas','autonomia','dominio_entorno','crecimiento_personal','proposito_vida'] %}
+        {% for cat_key in cat_keys %}{% set cat = categorias[cat_key] %}
+        <div class="category-page {% if loop.index == 1 %}active{% endif %}" id="cat-{{ loop.index }}">
+            <div class="category-header"><h2>{{ cat.nombre }}</h2><p>{{ cat.descripcion }}</p><div class="category-counter">Categoria {{ loop.index }} de 6</div></div>
+            {% if loop.index == 1 %}<div class="test-info"><p><i class="fas fa-info-circle" style="color:var(--accent)"></i> Responde según que tan de acuerdo estas. <strong>1</strong>=Muy en desacuerdo, <strong>6</strong>=Muy de acuerdo. No hay respuestas correctas.</p></div>{% endif %}
+            {% for preg in cat.preguntas %}
+            <div class="question-card" id="qcard-{{ preg.id }}"><div class="question-text">{{ loop.index }}. {{ preg.texto }}</div><div class="likert-scale">
+                {% for val in range(1,7) %}<div class="likert-option"><input type="radio" name="pregunta_{{ preg.id }}" value="{{ val }}" id="p{{ preg.id }}_{{ val }}" onchange="updateP()"><label for="p{{ preg.id }}_{{ val }}">{{ val }}<br>{% if val==1 %}Muy en desacuerdo{% elif val==2 %}En desacuerdo{% elif val==3 %}Algo en desacuerdo{% elif val==4 %}Algo de acuerdo{% elif val==5 %}De acuerdo{% elif val==6 %}Muy de acuerdo{% endif %}</label></div>{% endfor %}
+            </div></div>{% endfor %}
+            <div class="nav-buttons">
+                {% if loop.index > 1 %}<button type="button" class="btn btn-secondary" onclick="goCat({{ loop.index-1 }})"><i class="fas fa-arrow-left"></i> Anterior</button>{% else %}<a href="{{ url_for('alumno_dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Menu</a>{% endif %}
+                {% if loop.index < 6 %}<button type="button" class="btn btn-primary" onclick="goCat({{ loop.index+1 }})" style="flex:1">Siguiente <i class="fas fa-arrow-right"></i></button>{% else %}<button type="submit" class="btn btn-primary" style="flex:1"><i class="fas fa-paper-plane"></i> Enviar evaluacion</button>{% endif %}
+            </div>
+        </div>{% endfor %}
+    </form>
+</div>
+{% endblock %}
+{% block extra_js %}<script>
+var TQ = 39;  // total de preguntas reales
+var qpc = {
+    1: [1, 6],    // autoaceptacion (6 preguntas)
+    2: [7, 12],   // relaciones_positivas (6 preguntas)
+    3: [13, 18],  // autonomia (6 preguntas)
+    4: [19, 24],  // dominio_entorno (6 preguntas)
+    5: [25, 32],  // crecimiento_personal (7 preguntas)
+    6: [33, 39]   // proposito_vida (6 preguntas)
+};
+function updateP(){var a=0;for(var i=1;i<=TQ;i++){var r=document.querySelectorAll('input[name="pregunta_'+i+'"]');for(var j=0;j<r.length;j++){if(r[j].checked){a++;break}}}var p=Math.round((a/TQ)*100);document.getElementById('pb').style.width=p+'%';document.getElementById('pp').textContent=p+'%'}
+function valCat(n){var s=qpc[n],ok=true;for(var i=s[0];i<=s[1];i++){var r=document.querySelectorAll('input[name="pregunta_'+i+'"]'),ans=false;for(var j=0;j<r.length;j++){if(r[j].checked){ans=true;break}}var c=document.getElementById('qcard-'+i);if(!ans){c.classList.add('unanswered');ok=false}else{c.classList.remove('unanswered')}}return ok}
+function goCat(n){var c=document.querySelector('.category-page.active'),cn=parseInt(c.id.split('-')[1]);if(n>cn&&!valCat(cn)){alert('Responde todas las preguntas de esta categoria.');var f=c.querySelector('.unanswered');if(f)f.scrollIntoView({behavior:'smooth',block:'center'});return}document.querySelectorAll('.category-page').forEach(function(p){p.classList.remove('active')});document.getElementById('cat-'+n).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+document.getElementById('ryff-form').addEventListener('submit',function(e){if(!valCat(6)){e.preventDefault();alert('Responde todas las preguntas.');var f=document.querySelector('.unanswered');if(f)f.scrollIntoView({behavior:'smooth',block:'center'})}})
+</script>{% endblock %}

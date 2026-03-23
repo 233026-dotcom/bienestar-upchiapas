@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Mi Historial{% endblock %}
+{% block content %}
+<div style="max-width:750px;margin:0 auto">
+    <div class="page-header"><h1><i class="fas fa-chart-line" style="color:var(--accent)"></i> Mi Historial</h1><p>Revisa tus evaluaciones anteriores</p></div>
+    {% if resultados %}{% for r in resultados %}<div class="card" style="margin-bottom:1rem"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>{{ r.fecha.strftime('%d/%m/%Y') }}</strong> <span style="color:var(--text-muted);font-size:0.85rem">{{ r.fecha.strftime('%H:%M') }}</span></div><div style="display:flex;align-items:center;gap:12px"><span class="badge badge-{{ r.nivel_riesgo }}">{{ r.nivel_riesgo|capitalize }}</span><span style="font-family:var(--font-display);font-size:1.3rem;color:var(--accent)">{{ r.puntaje_total }}<span style="font-size:0.75rem;color:var(--text-muted)">/252</span></span><a href="{{ url_for('resultado_ryff', resultado_id=r.id) }}" class="btn btn-sm btn-outline"><i class="fas fa-eye"></i> Ver</a></div></div></div>{% endfor %}
+    {% else %}<div class="card text-center" style="padding:3rem"><i class="fas fa-clipboard-list" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem"></i><h3 style="color:var(--text-secondary)">Sin evaluaciones</h3><p style="color:var(--text-muted);margin-bottom:1.5rem">Realiza tu primera evaluacion.</p><a href="{{ url_for('test_ryff') }}" class="btn btn-primary"><i class="fas fa-brain"></i> Realizar Test</a></div>{% endif %}
+    <a href="{{ url_for('alumno_dashboard') }}" class="btn btn-secondary mt-2"><i class="fas fa-arrow-left"></i> Volver</a>
+</div>
+{% endblock %}

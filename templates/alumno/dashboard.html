@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Mi Espacio - Bienestar UPChiapas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-seedling" style="color:var(--accent)"></i> Hola, {{ current_user.nombre_completo.split()[0] if current_user.nombre_completo else 'Estudiante' }}</h1>
+    <p>Tu espacio de bienestar personal</p>
+</div>
+
+<div class="notifications-section" style="margin-bottom: 2rem;">
+    <h3><i class="fas fa-bell"></i> Mis Avisos</h3>
+    {% if notificaciones %}
+        {% for n in notificaciones %}
+            <div class="alert {% if not n.leida %}alert-warning{% else %}alert-light{% endif %}" 
+                 style="border-left: 5px solid var(--accent); margin-bottom: 10px; padding: 15px; border-radius: 8px; position: relative;">
+                
+                <button type="button" class="close" data-dismiss="alert" style="position: absolute; right: 10px; top: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">&times;</button>
+                
+                <small class="text-muted">{{ n.fecha.strftime('%d/%m/%Y %H:%M') }}</small>
+                <p style="margin: 5px 0 0 0; font-weight: {% if not n.leida %}bold{% else %}normal{% endif %};">
+                    {{ n.mensaje }}
+                </p>
+                
+                {% if 'agendar' in n.mensaje.lower() or 'cita' in n.mensaje.lower() %}
+                    <div style="margin-top: 10px;">
+                        <span class="badge" style="background-color: var(--accent); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">AVISO IMPORTANTE</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No tienes avisos pendientes.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header" style="display: flex; align-items: center; gap: 15px;">
+        <div class="card-icon" 
+             style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.5rem;
+             {% if ultimo_test and ultimo_test.nivel_riesgo == 'alto' %} background-color: #d4edda; color: #155724;
+             {% elif ultimo_test and ultimo_test.nivel_riesgo == 'medio' %} background-color: #fff3cd; color: #856404;
+             {% else %} background-color: #f8d7da; color: #721c24; {% endif %}">
+            <i class="fas fa-brain"></i>
+        </div>
+        <div>
+            <div class="card-title" style="font-weight: bold; font-size: 1.1rem;">Último Test Realizado</div>
+            {% if ultimo_test %}
+                <span class="badge" style="padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+                    {% if ultimo_test.nivel_riesgo == 'alto' %} background-color: #d4edda; color: #155724;
+                    {% elif ultimo_test.nivel_riesgo == 'medio' %} background-color: #fff3cd; color: #856404;
+                    {% else %} background-color: #f8d7da; color: #721c24; {% endif %}">
+                    
+                    {% if ultimo_test.nivel_riesgo == 'alto' %} BIENESTAR ALTO
+                    {% elif ultimo_test.nivel_riesgo == 'medio' %} BIENESTAR MEDIO
+                    {% else %} NECESITA ATENCIÓN {% endif %}
+                </span>
+                <small class="text-muted" style="display: block; margin-top: 4px;">Evaluado el: {{ ultimo_test.fecha.strftime('%d/%m/%Y') }}</small>
+            {% else %}
+                <span style="color: #e74c3c; font-size: 0.85rem; font-weight: bold;">Aún no has realizado tu primera evaluación</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<h2 style="font-family:var(--font-display); font-size:1.4rem; margin-bottom:1.2rem;">
+    <i class="fas fa-compass" style="color:var(--accent)"></i> Explora tus herramientas
+</h2>
+
+<div class="grid-3 stagger">
+    <a href="{{ url_for('test_ryff') }}" class="menu-card">
+        <div class="menu-card-icon" style="background:linear-gradient(135deg,#D8F3DC,#B7E4C7);color:#2D6A4F"><i class="fas fa-brain"></i></div>
+        <h3>Test de Ryff</h3>
+        <p>Evalúa tu bienestar psicológico en 6 dimensiones</p>
+    </a>
+    <a href="{{ url_for('centro_equilibrio') }}" class="menu-card">
+        <div class="menu-card-icon" style="background:linear-gradient(135deg,#E0F0FF,#BFDBFE);color:#2563EB"><i class="fas fa-wind"></i></div>
+        <h3>Centro de Equilibrio</h3>
+        <p>Ejercicios de respiración y relajación guiados</p>
+    </a>
+    <a href="{{ url_for('frases_consejos') }}" class="menu-card">
+        <div class="menu-card-icon" style="background:linear-gradient(135deg,#FFF3CD,#FFEAA7);color:#D4A017"><i class="fas fa-quote-left"></i></div>
+        <h3>Frases y Consejos</h3>
+        <p>Motivación y recomendaciones para tu bienestar</p>
+    </a>
+    <a href="{{ url_for('diario') }}" class="menu-card">
+        <div class="menu-card-icon" style="background:linear-gradient(135deg,#F3E8FF,#E9D5FF);color:#7C3AED"><i class="fas fa-book-open"></i></div>
+        <h3>Mi Diario</h3>
+        <p>Espacio privado para escribir y reflexionar</p>
+    </a>
+    <a href="{{ url_for('logros') }}" class="menu-card">
+        <div class="menu-card-icon" style="background:linear-gradient(135deg,#FFEDD5,#FED7AA);color:#EA580C"><i class="fas fa-trophy"></i></div>
+        <h3>Logros</h3>
+        <p>Registra tus hábitos saludables y metas</p>
+    </a>
+    <a href="{{ url_for('historial_ryff') }}" class="menu-card">
+        <div class="menu-card-icon" style="background:linear-gradient(135deg,#FCE7F3,#FBCFE8);color:#DB2777"><i class="fas fa-chart-line"></i></div>
+        <h3>Mi Historial</h3>
+        <p>Revisa tus evaluaciones anteriores</p>
+    </a>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h3><i class="fas fa-key"></i> Seguridad</h3>
+    <form action="{{ url_for('alumno_cambiar_password') }}" method="POST">
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 5px;">Contraseña Actual</label>
+            <input type="password" name="current_password" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+        </div>
+        <div style="display: flex; gap: 15px; margin-bottom: 1rem;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px;">Nueva Contraseña</label>
+                <input type="password" name="new_password" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 5px;">Confirmar Nueva</label>
+                <input type="password" name="confirm_password" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="background-color: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+            Actualizar Contraseña
+        </button>
+    </form>
+</div>
+{% endblock %}

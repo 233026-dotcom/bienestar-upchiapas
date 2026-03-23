@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Bienestar UPChiapas</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root{--font-body:'DM Sans',sans-serif;--font-display:'Playfair Display',serif}
+        [data-theme="light"]{--bg:#F5F0EB;--card:#FFF;--text:#1A1A2E;--text2:#5A5A7A;--muted:#9090A8;--accent:#2D6A4F;--accent-h:#1B4332;--accent-light:#D8F3DC;--input-bg:#F8F6F3;--border:rgba(0,0,0,0.08);--error:#C1292E;--error-bg:#FFE0E0;--success:#2D6A4F;--success-bg:#D8F3DC}
+        [data-theme="dark"]{--bg:#0F0F1A;--card:#1E1E32;--text:#E8E8F0;--text2:#A0A0B8;--muted:#6A6A82;--accent:#52B788;--accent-h:#74C69D;--accent-light:#1B3A2E;--input-bg:#252540;--border:rgba(255,255,255,0.08);--error:#FF6B6B;--error-bg:#3A1A1A;--success:#52B788;--success-bg:#1B3A2E}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:2rem;transition:all 0.3s}
+        .register-container{width:100%;max-width:680px;background:var(--card);border-radius:20px;border:1px solid var(--border);padding:2.5rem;box-shadow:0 8px 40px rgba(0,0,0,0.06)}
+        .header{text-align:center;margin-bottom:2rem}
+        .header .icon{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#2D6A4F,#52B788);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;margin-bottom:1rem}
+        .header h1{font-family:var(--font-display);font-size:1.8rem} .header p{color:var(--text2);font-size:0.95rem;margin-top:0.3rem}
+        .step-indicator{display:flex;justify-content:center;gap:8px;margin-bottom:2rem} .step{width:40px;height:4px;border-radius:4px;background:var(--border);transition:all 0.3s} .step.active{background:var(--accent);width:60px} .step.done{background:var(--accent);opacity:0.5}
+        .form-step{display:none} .form-step.active{display:block;animation:fadeIn 0.3s ease} @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .form-group{margin-bottom:1.2rem} .form-group label{display:block;font-weight:500;font-size:0.88rem;margin-bottom:6px}
+        .form-control{width:100%;padding:12px 16px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;font-family:var(--font-body);font-size:0.95rem;color:var(--text);transition:all 0.3s}
+        .form-control:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,106,79,0.15)}
+        select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239090A8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem} @media(max-width:600px){.form-row{grid-template-columns:1fr}}
+        .privacy-box{background:var(--accent-light);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;border:1px solid var(--accent)} .privacy-box h4{color:var(--accent);margin-bottom:0.8rem;font-size:0.95rem} .privacy-box p{font-size:0.85rem;color:var(--text2);line-height:1.6}
+        .checkbox-group{display:flex;align-items:flex-start;gap:10px;margin-top:1rem} .checkbox-group input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent)} .checkbox-group label{font-size:0.88rem;cursor:pointer}
+        .btn-row{display:flex;gap:12px;margin-top:1.5rem}
+        .btn{flex:1;padding:13px 20px;border:none;border-radius:10px;font-family:var(--font-body);font-weight:600;font-size:0.95rem;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+        .btn-primary{background:var(--accent);color:#fff} .btn-primary:hover{background:var(--accent-h);transform:translateY(-1px)}
+        .btn-secondary{background:var(--input-bg);color:var(--text);border:1px solid var(--border)} .btn-secondary:hover{background:var(--border)}
+        .login-link{text-align:center;margin-top:1.5rem;color:var(--text2);font-size:0.9rem} .login-link a{color:var(--accent);text-decoration:none;font-weight:600}
+        .alert{padding:12px 16px;border-radius:10px;margin-bottom:1.5rem;font-size:0.9rem;display:flex;align-items:center;gap:8px} .alert-error{background:var(--error-bg);color:var(--error)} .alert-success{background:var(--success-bg);color:var(--success)}
+        .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:8px 14px;cursor:pointer;color:var(--text2);font-size:0.85rem;display:flex;align-items:center;gap:6px;font-family:var(--font-body);transition:all 0.3s;z-index:10}
+        .email-hint{font-size:0.78rem;color:var(--muted);margin-top:4px}
+    </style>
+</head>
+<body>
+    <button class="theme-btn" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
+    <div class="register-container">
+        <div class="header"><div class="icon"><i class="fas fa-user-plus"></i></div><h1>Crear cuenta</h1><p>Completa tus datos para acceder a la plataforma</p></div>
+        {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for category, message in messages %}<div class="alert alert-{{ category }}"><i class="fas fa-exclamation-circle"></i> {{ message }}</div>{% endfor %}{% endif %}{% endwith %}
+        <div class="step-indicator"><div class="step active" id="step-ind-1"></div><div class="step" id="step-ind-2"></div><div class="step" id="step-ind-3"></div></div>
+        <form method="POST" action="{{ url_for('registro') }}" id="register-form">
+            <div class="form-step active" id="step-1">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem"><i class="fas fa-envelope" style="color:var(--accent)"></i> Datos de acceso</h3>
+                <div class="form-group"><label>Correo institucional *</label><input type="email" name="email" class="form-control" placeholder="matricula@carrera.upchiapas.edu.mx" required id="email-input"><p class="email-hint"><i class="fas fa-info-circle"></i> Formato: matricula@carrera.upchiapas.edu.mx</p></div>
+                <div class="form-row"><div class="form-group"><label>Contrasena *</label><input type="password" name="password" class="form-control" placeholder="Minimo 6 caracteres" required minlength="6" id="pw1"></div><div class="form-group"><label>Confirmar contraseña *</label><input type="password" name="confirm_password" class="form-control" placeholder="Repite tu contrasena" required id="pw2"></div></div>
+                <div class="btn-row"><a href="{{ url_for('login') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</a><button type="button" class="btn btn-primary" onclick="goStep(2)">Siguiente <i class="fas fa-arrow-right"></i></button></div>
+            </div>
+            <div class="form-step" id="step-2">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem"><i class="fas fa-id-card" style="color:var(--accent)"></i> Datos personales</h3>
+                <div class="form-group"><label>Nombre completo *</label><input type="text" name="nombre_completo" class="form-control" placeholder="Tu nombre completo" required></div>
+                <div class="form-row"><div class="form-group"><label>Edad *</label><input type="number" name="edad" class="form-control" placeholder="Ej: 20" min="15" max="70" required></div><div class="form-group"><label>Sexo *</label><select name="sexo" class="form-control" required><option value="">Selecciona...</option><option value="Mujer">Mujer</option><option value="Hombre">Hombre</option><option value="No binario">No binario</option><option value="Prefiero no decirlo">Prefiero no decirlo</option></select></div></div>
+                <div class="form-group"><label>Carrera *</label><select name="carrera" class="form-control" required><option value="">Selecciona tu carrera...</option><option>Ingeniería Biomédica</option><option>Ingeniería Petrolera</option><option>Ingeniería en Tecnologías en Manufactura Avanzada</option><option>Ingeniería Mecatrónica</option><option>Ingeniería en Energía y Desarrollo Sostenible</option><option>Ingeniería en Tecnologías de la Información e Innovación Digital</option><option>Ingeniería en Alimentos</option><option>Ingeniería Ambiental y Sustentabilidad</option><option>Ingenieráa en Nanotecnologia</option><option>Lic. en Administración</option><option>Otra</option></select></div>
+                <div class="form-row"><div class="form-group"><label>Lugar de origen</label><input type="text" name="origen" class="form-control" placeholder="Ej: Tuxtla Gutierrez"></div><div class="form-group"><label>Lengua indígena?</label><input type="text" name="lengua" class="form-control" placeholder="Ej: Tzotzil, Tzeltal, ninguna"></div></div>
+                <div class="form-group"><label>Discapacidad?</label><input type="text" name="discapacidad" class="form-control" placeholder="Especifica o escribe 'Ninguna'"></div>
+                <div class="btn-row"><button type="button" class="btn btn-secondary" onclick="goStep(1)"><i class="fas fa-arrow-left"></i> Anterior</button><button type="button" class="btn btn-primary" onclick="goStep(3)">Siguiente <i class="fas fa-arrow-right"></i></button></div>
+            </div>
+            <div class="form-step" id="step-3">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem"><i class="fas fa-shield-halved" style="color:var(--accent)"></i> Aviso de privacidad</h3>
+                <div class="privacy-box">
+                    <h4><i class="fas fa-lock"></i> Aviso de Privacidad y Consentimiento</h4>
+                    <p>Los datos que proporcionas seran recabados exclusivamente por la <strong>Unidad de Igualdad de Género</strong> de la Universidad Politécnica de Chiapas con fines de <strong>bienestar psicológico estudiantil</strong>.</p>
+                    <p style="margin-top:0.8rem">Tu informacion sera tratada de forma <strong>estrictamente confidencial</strong>. Los resultados seran utilizados para identificar areas de mejora y, en caso necesario, para canalizar atención psicológica oportuna a través del SIAUP.</p>
+                    <p style="margin-top:0.8rem">El contenido de tu diario personal es <strong>completamente privado</strong> y no será accesible para el personal administrativo.</p>
+                    <div class="checkbox-group"><input type="checkbox" name="acepta_privacidad" id="acepta" required><label for="acepta">Acepto que mis datos sean recabados para fines de bienestar psicológico estudiantil y comprendo que serán tratados de forma confidencial.</label></div>
+                </div>
+                <div class="btn-row"><button type="button" class="btn btn-secondary" onclick="goStep(2)"><i class="fas fa-arrow-left"></i> Anterior</button><button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Crear mi cuenta</button></div>
+            </div>
+        </form>
+        <div class="login-link">Ya tienes cuenta? <a href="{{ url_for('login') }}">Iniciar sesión</a></div>
+    </div>
+    <script>
+        function getTheme(){return localStorage.getItem('theme')||'light'}
+        function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);var i=document.getElementById('theme-icon');if(i)i.className=t==='dark'?'fas fa-sun':'fas fa-moon'}
+        function toggleTheme(){setTheme(getTheme()==='light'?'dark':'light')}
+        setTheme(getTheme())
+        function goStep(n){var c=document.querySelector('.form-step.active'),inputs=c.querySelectorAll('[required]'),valid=true;inputs.forEach(function(inp){if(!inp.value.trim()){inp.style.borderColor='var(--error)';valid=false}else{inp.style.borderColor='var(--border)'}});if(c.id==='step-1'&&n===2){var p1=document.getElementById('pw1').value,p2=document.getElementById('pw2').value;if(p1!==p2){alert('Las contraseñas no coinciden');return}if(p1.length<6){alert('La contraseña debe tener al menos 6 caracteres');return}}if(!valid&&n>parseInt(c.id.split('-')[1]))return;document.querySelectorAll('.form-step').forEach(function(s){s.classList.remove('active')});document.getElementById('step-'+n).classList.add('active');document.querySelectorAll('.step').forEach(function(s,i){s.classList.remove('active','done');if(i+1===n)s.classList.add('active');else if(i+1<n)s.classList.add('done')})}
+    </script>
+</body>
+</html>

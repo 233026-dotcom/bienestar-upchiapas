@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Gestion de Frases - Admin{% endblock %}
+{% block content %}
+<div style="max-width:800px;margin:0 auto">
+    <div class="page-header"><h1><i class="fas fa-pen-fancy" style="color:var(--accent)"></i> Gestión de Frases y Consejos</h1><p>Contenido visible para los alumnos</p></div>
+    <div class="card" style="margin-bottom:2rem">
+        <h3 style="margin-bottom:1rem;font-family:var(--font-display);font-size:1.1rem"><i class="fas fa-plus-circle" style="color:var(--accent)"></i> Agregar nueva</h3>
+        <form method="POST" action="{{ url_for('admin_frases') }}"><input type="hidden" name="action" value="agregar">
+            <div class="form-group"><label>Tipo</label><select name="tipo" class="form-control" style="max-width:300px"><option value="frase">Frase motivadora</option><option value="consejo">Consejo</option></select></div>
+            <div class="form-group"><label>Texto</label><textarea name="texto" class="form-control" placeholder="Escribe la frase o consejo..." required rows="3"></textarea></div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar</button>
+        </form>
+    </div>
+    <h3 style="font-family:var(--font-display);margin-bottom:1rem">Contenido actual ({{ frases|length }})</h3>
+    {% for f in frases %}<div class="card" style="margin-bottom:0.8rem;{% if not f.activo %}opacity:0.5{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div style="flex:1"><span class="badge {% if f.tipo == 'frase' %}badge-bajo{% else %}badge-medio{% endif %}" style="margin-bottom:6px">{{ f.tipo|capitalize }}</span>{% if not f.activo %} <span class="badge" style="background:var(--bg-input);color:var(--text-muted)">Oculta</span>{% endif %}<p style="font-size:0.92rem;margin-top:4px;line-height:1.5">{{ f.texto }}</p></div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+                <form method="POST" action="{{ url_for('admin_frases') }}"><input type="hidden" name="action" value="toggle"><input type="hidden" name="frase_id" value="{{ f.id }}"><button type="submit" class="btn btn-secondary btn-sm"><i class="fas {% if f.activo %}fa-eye-slash{% else %}fa-eye{% endif %}"></i></button></form>
+                <form method="POST" action="{{ url_for('admin_frases') }}" onsubmit="return confirm('Eliminar?')"><input type="hidden" name="action" value="eliminar"><input type="hidden" name="frase_id" value="{{ f.id }}"><button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt"></i></button></form>
+            </div>
+        </div>
+    </div>{% endfor %}
+    {% if not frases %}<div class="card text-center" style="padding:2rem;color:var(--text-muted)"><p>Sin frases aun.</p></div>{% endif %}
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver</a>
+</div>
+{% endblock %}

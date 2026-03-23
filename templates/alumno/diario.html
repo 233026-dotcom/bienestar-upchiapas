@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Mi Diario{% endblock %}
+{% block extra_css %}<style>
+.diario{max-width:750px;margin:0 auto}
+.privacy-notice{background:var(--success-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px 16px;font-size:0.88rem;color:var(--accent);margin-bottom:1.5rem;display:flex;align-items:center;gap:10px}
+.mood-selector{display:flex;gap:8px;margin-bottom:1rem} .mood-option input{display:none} .mood-option label{font-size:1.8rem;cursor:pointer;opacity:0.4;transition:all 0.3s;display:block;padding:6px;border-radius:12px} .mood-option input:checked+label{opacity:1;transform:scale(1.2);background:var(--bg-input)} .mood-option label:hover{opacity:0.8}
+.entry-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin-bottom:0.8rem}
+.entry-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem} .entry-date{font-size:0.82rem;color:var(--text-muted)} .entry-mood{font-size:1.3rem}
+.entry-content{font-size:0.92rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap}
+</style>{% endblock %}
+{% block content %}
+<div class="diario">
+    <div class="page-header"><h1><i class="fas fa-book-open" style="color:var(--accent)"></i> Mi Diario Personal</h1><p>Un espacio seguro para expresarte</p></div>
+    <div class="privacy-notice"><i class="fas fa-lock"></i><span><strong>Este apartado es completamente privado.</strong> Solo tú puedes ver lo que escribes aquí.</span></div>
+    <div class="card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem;font-family:var(--font-display)"><i class="fas fa-pen" style="color:var(--accent)"></i> Nueva Entrada</h3>
+        <form method="POST" action="{{ url_for('diario') }}">
+            <div class="form-group"><label>Cómo te sientes hoy?</label><div class="mood-selector">
+                <div class="mood-option"><input type="radio" name="estado_animo" value="1" id="m1"><label for="m1">&#128546;</label></div>
+                <div class="mood-option"><input type="radio" name="estado_animo" value="2" id="m2"><label for="m2">&#128543;</label></div>
+                <div class="mood-option"><input type="radio" name="estado_animo" value="3" id="m3" checked><label for="m3">&#128528;</label></div>
+                <div class="mood-option"><input type="radio" name="estado_animo" value="4" id="m4"><label for="m4">&#128522;</label></div>
+                <div class="mood-option"><input type="radio" name="estado_animo" value="5" id="m5"><label for="m5">&#128516;</label></div>
+            </div></div>
+            <div class="form-group"><label>Escribe lo que quieras</label><textarea name="contenido" class="form-control" placeholder="Cómo fue tu día?" required></textarea></div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+        </form>
+    </div>
+    {% if entradas|length > 1 %}<div class="card" style="margin-bottom:1.5rem"><h3 style="margin-bottom:1rem;font-family:var(--font-display);font-size:1.1rem"><i class="fas fa-chart-area" style="color:var(--accent)"></i> Tu estado de ánimo</h3><canvas id="mood-chart" style="max-height:200px"></canvas></div>{% endif %}
+    <h3 style="font-family:var(--font-display);margin-bottom:1rem"><i class="fas fa-history" style="color:var(--accent)"></i> Historial ({{ entradas|length }})</h3>
+    {% for e in entradas %}<div class="entry-card"><div class="entry-header"><span class="entry-date"><i class="fas fa-calendar"></i> {{ e.fecha.strftime('%d/%m/%Y %H:%M') }}</span><span class="entry-mood">{% if e.estado_animo == 1 %}&#128546;{% elif e.estado_animo == 2 %}&#128543;{% elif e.estado_animo == 3 %}&#128528;{% elif e.estado_animo == 4 %}&#128522;{% else %}&#128516;{% endif %}</span></div><div class="entry-content">{{ e.contenido }}</div></div>{% endfor %}
+    {% if not entradas %}<div class="card text-center" style="padding:2rem;color:var(--text-muted)"><p>Escribe tu primera entrada.</p></div>{% endif %}
+    <a href="{{ url_for('alumno_dashboard') }}" class="btn btn-secondary mt-3"><i class="fas fa-arrow-left"></i> Volver</a>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script><script>
+var dg={{ datos_grafica|safe }};if(dg.length>1){var ctx=document.getElementById('mood-chart').getContext('2d');var dk=document.documentElement.getAttribute('data-theme')==='dark';new Chart(ctx,{type:'line',data:{labels:dg.map(function(d){return d.fecha}),datasets:[{label:'Animo',data:dg.map(function(d){return d.animo}),borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,0.1)',borderWidth:3,fill:true,tension:0.4,pointBackgroundColor:'#2D6A4F',pointRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:1,max:5,ticks:{stepSize:1,color:dk?'#A0A0B8':'#5A5A7A'},grid:{color:dk?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)'}},x:{ticks:{color:dk?'#A0A0B8':'#5A5A7A'},grid:{display:false}}}}})}
+</script>{% endblock %}
